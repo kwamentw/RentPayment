@@ -57,6 +57,32 @@ contract MainTest is Test{
         vm.stopPrank();
     }
 
+    function testWithdrawRent() public {
+        addtenants();
+        vm.deal(address(333),1 ether);
+        vm.prank(address(333));
+        vm.warp(block.timestamp + 33 days);
+        rent.payRent{value: 0.03e18 }();
+
+        vm.deal(address(454),2e18);
+        vm.prank(address(454));
+        vm.warp(block.timestamp + 33 days);
+        rent.payRent{value: 0.03 ether}();
+
+        vm.deal(address(0xddcde),1e18);
+        vm.prank(address(0xddcde));
+        vm.warp(block.timestamp + 33 days);
+        rent.payRent{value: 0.03e18}();
+
+        uint256 bal = address(rent).balance;
+
+        rent.changeLandlord(address(223));
+
+        vm.prank(address(223));
+        rent.withdrawRent();
+        assertEq(address(rent.getlandlord()).balance , bal);
+    }
+
     function testCheckAmtUsd() public view {
         assertGt(rent.checkRentInUSD(56.778e18),0);
     }

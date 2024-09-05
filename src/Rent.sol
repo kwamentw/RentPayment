@@ -10,7 +10,7 @@ contract RentPayment{
     event TenantSacked(address tenant);
     event AddressesShouldPayTheirRent();
     event landlordChanged(address,address);
-    event rentPayed(address tenant, uint256 nextPaymentTime,uint256 amount);
+    event rentPayed(address tenant, uint256 nextPaymentTime);
     event RentWithdrawed(address landlord);
 
     error alreadyTenant();
@@ -18,14 +18,14 @@ contract RentPayment{
     error RentNotExpired();
     error insufficientAmount();
 
-    address payable landlord;
+    address landlord;
     uint256 RENT_COST = 0.03e18;
     uint256 internal tenantsTotal;
     mapping (address tenant => uint256 roomId) tenantDetails;
     mapping (address tenant => uint256 timeRentPayed) paymentRecords;
 
     constructor(){
-        landlord = payable(msg.sender);
+        landlord = msg.sender;
     }
     modifier onlyLandlord {
         require(msg.sender == landlord,"only landlord can perform this");
@@ -74,17 +74,9 @@ contract RentPayment{
         if(msg.value != RENT_COST){revert insufficientAmount();}
         checkOwing(msg.sender);
 
-        uint256 amountPaid = msg.value;
-
         paymentRecords[msg.sender]=block.timestamp;
 
-        if(amountPaid > RENT_COST){
-            (bool sent,) = payable(msg.sender).call{value: amountPaid - RENT_COST}("");
-            require(sent);
-        }
-        payable(landlord).transfer(RENT_COST);
-
-        emit rentPayed(msg.sender,block.timestamp,address(this).balance);
+        emit rentPayed(msg.sender,block.timestamp);
 
         return true;
     }
@@ -93,9 +85,16 @@ contract RentPayment{
         return (uint256(usdprice.currentRate()) * amountInETH)/1e26;
     }
 
+    function withdrawRent() external onlyLandlord{
+        uint256 amountToWithdraw = checkTotalRentReceived();
+        (bool sent,)=payable(landlord).call{value:amountToWithdraw}("");
+        require(sent);
+        emit RentWithdrawed(landlord);
+    }
+
     function changeLandlord(address newlandlord) external onlyLandlord{
         address oldlandlord = landlord;
-        landlord = payable(newlandlord);
+        landlord = newlandlord;
 
         emit landlordChanged(oldlandlord,landlord);
     }
