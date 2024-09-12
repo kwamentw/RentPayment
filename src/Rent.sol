@@ -4,6 +4,7 @@ pragma solidity 0.8.24;
 import {CheckPrice} from "./pricefeed.sol";
 
 contract RentPayment{
+    // price oracle
     CheckPrice usdprice;
 //--------------------------- EVENTS ---------------------------------
     event NewTenantAdded(address newtenant);
@@ -21,6 +22,7 @@ contract RentPayment{
     address landlord;
     uint256 RENT_COST = 0.03e18;
     uint256 internal tenantsTotal;
+
     mapping (address tenant => uint256 roomId) tenantDetails;
     mapping (address tenant => uint256 timeRentPayed) paymentRecords;
 
@@ -31,8 +33,6 @@ contract RentPayment{
         require(msg.sender == landlord,"only landlord can perform this");
         _;
     }
-
-    receive()external payable{}
 
     /**
      * Owner adds a new Tenant
