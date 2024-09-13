@@ -29,6 +29,9 @@ contract RentPayment{
     constructor(){
         landlord = msg.sender;
     }
+    /**
+     * makes sure only landlord can call functions that apply this modifier
+     */
     modifier onlyLandlord {
         require(msg.sender == landlord,"only landlord can perform this");
         _;
@@ -146,3 +149,12 @@ contract RentPayment{
         return landlord;
     }
 }
+
+/**
+ * Features to add
+ * One person can own multiple units(buy, rent, sell, remove)
+ * add specification for the type of unit
+ * (different types of unit for eg. single room, two bedrooms, studio apartment)
+ * add buy option instead of renting
+ * Add some discount feature to run promo when selling
+ */
