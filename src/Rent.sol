@@ -51,13 +51,11 @@ struct tenantInfo{
         return unitBytes;
     }
 
-    // function removeUnit(string memory unitName, uint256 numRemoving) external onlyLandlord {
-    //     if(UnitTypeAvailable[abi.encode(unitName)]!=0){
-    //         if(tenantInfo.unitDetails[abi.encode(unitName)] == 0){
-    //             revert ;
-    //         }
-    //     }
-    // }
+    function removeUnit(string memory unitName, uint256 numRemoving) external onlyLandlord {
+
+    }
+
+    function checkUnitsAvailable() external returns ( bytes memory){}
 
     /**
      * Owner adds a new Tenant
