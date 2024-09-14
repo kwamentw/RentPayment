@@ -6,26 +6,34 @@ import {CheckPrice} from "./pricefeed.sol";
 contract RentPayment{
     // price oracle
     CheckPrice usdprice;
-//--------------------------- EVENTS ---------------------------------
+//--------------------------- EVENTS ------------------------------------
     event NewTenantAdded(address newtenant);
     event TenantSacked(address tenant);
     event AddressesShouldPayTheirRent();
     event landlordChanged(address,address);
     event rentPayed(address tenant, uint256 nextPaymentTime);
     event RentWithdrawed(address landlord);
-//------------------------------ ERRORS -------------------------------
+//------------------------------ ERRORS ---------------------------------
     error alreadyTenant();
     error invalidTenant();
     error RentNotExpired();
     error insufficientAmount();
-
+//-----------------------------------------------------------------------
     address landlord;
     uint256 RENT_COST = 0.03e18;
     uint256 internal tenantsTotal;
-
+//-----------------------------------------------------------------------
     mapping (address tenant => uint256 roomId) tenantDetails;
+    mapping (address tenant => tenantInfo info) infoTenant;
     mapping (address tenant => uint256 timeRentPayed) paymentRecords;
+    mapping ( bytes typeOfUnit => uint256 noOfUnitsAvailable) UnitTypeAvailable;
+//-----------------------------------------------------------------------
 
+struct tenantInfo{
+    address tenant;
+    mapping(uint256 unitId => bytes unitTypeId) unitsOwned;
+    mapping(bytes unitTypeId => uint256 noOfUnits) unitDetails;
+}
     constructor(){
         landlord = msg.sender;
     }
@@ -36,6 +44,20 @@ contract RentPayment{
         require(msg.sender == landlord,"only landlord can perform this");
         _;
     }
+
+    function addNewUnit(string memory unitName, uint256 numAvailable) external onlyLandlord returns(bytes memory){
+        bytes memory unitBytes = abi.encode(unitName);
+        UnitTypeAvailable[unitBytes]=numAvailable;
+        return unitBytes;
+    }
+
+    // function removeUnit(string memory unitName, uint256 numRemoving) external onlyLandlord {
+    //     if(UnitTypeAvailable[abi.encode(unitName)]!=0){
+    //         if(tenantInfo.unitDetails[abi.encode(unitName)] == 0){
+    //             revert ;
+    //         }
+    //     }
+    // }
 
     /**
      * Owner adds a new Tenant
