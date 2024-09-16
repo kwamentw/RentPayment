@@ -21,19 +21,29 @@ contract RentPayment{
 //-----------------------------------------------------------------------
     address landlord;
     uint256 RENT_COST = 0.03e18;
+    uint256 SEC_DEPOSIT=0.00003e18;
     uint256 internal tenantsTotal;
 //-----------------------------------------------------------------------
     mapping (address tenant => uint256 roomId) tenantDetails;
-    mapping (address tenant => tenantInfo info) infoTenant;
     mapping (address tenant => uint256 timeRentPayed) paymentRecords;
-    mapping ( bytes typeOfUnit => uint256 noOfUnitsAvailable) UnitTypeAvailable;
 //-----------------------------------------------------------------------
 
-struct tenantInfo{
-    address tenant;
-    mapping(uint256 unitId => bytes unitTypeId) unitsOwned;
-    mapping(bytes unitTypeId => uint256 noOfUnits) unitDetails;
+struct UnitInfo{
+    // index of the unit type added
+    uint256 unitTypeIndex;
+    // number of rooms a unit has from single room to 5 bedroom units
+    uint256 noOfRooms;
+    // it is either self contain or shared hall or washrooms 
+    bool selfContain;
+    // they are either bigger apartments or small
+    bool bigger;
+    // number of units available
+    uint256 noOfUnitsAvailable;
 }
+
+UnitInfo[] public typeOfUnit;
+uint256 totalNoOfUnitTypes;
+
     constructor(){
         landlord = msg.sender;
     }
@@ -45,17 +55,36 @@ struct tenantInfo{
         _;
     }
 
-    function addNewUnit(string memory unitName, uint256 numAvailable) external onlyLandlord returns(bytes memory){
-        bytes memory unitBytes = abi.encode(unitName);
-        UnitTypeAvailable[unitBytes]=numAvailable;
-        return unitBytes;
+    function addNewUnit(uint256 _noOfRooms, bool _selfContain, bool _bigger, uint256 _numAvailable) external onlyLandlord returns(bytes memory){
+        require(_noOfRooms != 0,"invalidUnitType");
+        // add check to make sure one type cannot be added multiple times
+        UnitInfo memory tempUnit = UnitInfo({
+            unitTypeIndex: totalNoOfUnitTypes++,
+            noOfRooms: _noOfRooms,
+            selfContain: _selfContain,
+            bigger: _bigger,
+            noOfUnitsAvailable: _numAvailable
+        });
+
+        typeOfUnit.push(tempUnit);
     }
 
-    function removeUnit(string memory unitName, uint256 numRemoving) external onlyLandlord {
-
+    function removeUnit(uint256 _unitTypeIndex) external onlyLandlord {
+        // we can remove units when there are available units of not FYI landlord is trusted
+        // Available rooms can be undergoing renovation hence not making them accessible eventhoguh they are availble 
+        require(typeOfUnit[_unitTypeIndex].noOfRooms != 0,"InvalidUnitType");
+        delete typeOfUnit[_unitTypeIndex];
     }
 
-    function checkUnitsAvailable() external returns ( bytes memory){}
+    function checkUnitsAvailable(uint256 _numOfRooms) external view returns (uint256 unitsAvailable){
+        // user can specify preferable number of rooms in the unit he looking for to know how many are available
+        for(uint256 i=0; i<typeOfUnit.length; i++){
+            if(typeOfUnit[i].noOfRooms == _numOfRooms){
+                return typeOfUnit[i].noOfUnitsAvailable;
+            }
+        }
+
+    }
 
     /**
      * Owner adds a new Tenant
