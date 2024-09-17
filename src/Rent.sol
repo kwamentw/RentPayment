@@ -41,7 +41,9 @@ struct UnitInfo{
     uint256 noOfUnitsAvailable;
 }
 
+// Type of units for rent or sale
 UnitInfo[] public typeOfUnit;
+// The total number of the types of units added by the Landlord
 uint256 totalNoOfUnitTypes;
 
     constructor(){
@@ -53,8 +55,16 @@ uint256 totalNoOfUnitTypes;
     modifier onlyLandlord {
         require(msg.sender == landlord,"only landlord can perform this");
         _;
+    
     }
 
+    /**
+     * Add a new type of unit that is a availiable for rent
+     * @param _noOfRooms number of rooms of new unit 
+     * @param _selfContain is it a self contain unit or it is shared
+     * @param _bigger is it the bigger unit if yes true otherwise, False
+     * @param _numAvailable Number of units available for the unit type to be added 
+     */
     function addNewUnit(uint256 _noOfRooms, bool _selfContain, bool _bigger, uint256 _numAvailable) external onlyLandlord returns(bytes memory){
         require(_noOfRooms != 0,"invalidUnitType");
         // add check to make sure one type cannot be added multiple times
@@ -69,6 +79,10 @@ uint256 totalNoOfUnitTypes;
         typeOfUnit.push(tempUnit);
     }
 
+    /**
+     * Remove a type of unit that is being put up for rent
+     * @param _unitTypeIndex the index of the unit type to remove
+     */
     function removeUnit(uint256 _unitTypeIndex) external onlyLandlord {
         // we can remove units when there are available units of not FYI landlord is trusted
         // Available rooms can be undergoing renovation hence not making them accessible eventhoguh they are availble 
@@ -76,6 +90,11 @@ uint256 totalNoOfUnitTypes;
         delete typeOfUnit[_unitTypeIndex];
     }
 
+    /**
+     * Check the number of rooms specification to see if there is a match to preference
+     * And whether there are some units available
+     * @param _numOfRooms number of rooms Tenant is looking for 
+     */
     function checkUnitsAvailable(uint256 _numOfRooms) external view returns (uint256 unitsAvailable){
         // user can specify preferable number of rooms in the unit he looking for to know how many are available
         for(uint256 i=0; i<typeOfUnit.length; i++){
