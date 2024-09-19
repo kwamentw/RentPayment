@@ -91,6 +91,15 @@ uint256 totalNoOfUnitTypes;
     }
 
     /**
+     * A function to update type of units in system.
+     * @param _unitTypeIndex Type of unit to update
+     * @param unitsAvailable number of units available 
+     */
+    function updateUnits(uint256 _unitTypeIndex, uint256 unitsAvailable) external onlyLandlord{
+        typeOfUnit[_unitTypeIndex].noOfUnitsAvailable = unitsAvailable; 
+    }
+
+    /**
      * Check the number of rooms specification to see if there is a match to preference
      * And whether there are some units available
      * @param _numOfRooms number of rooms Tenant is looking for 
