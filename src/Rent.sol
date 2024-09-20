@@ -24,13 +24,19 @@ contract RentPayment{
     uint256 SEC_DEPOSIT=0.00003e18;
     uint256 internal tenantsTotal;
 //-----------------------------------------------------------------------
-    mapping (address tenant => uint256 roomId) tenantDetails;
+    mapping (address tenant => apartmentInfo apartment) tenantDetails;
     mapping (address tenant => uint256 timeRentPayed) paymentRecords;
 //-----------------------------------------------------------------------
 
+// To tell whether its a rental or bought 
+enum ModeOfAcquisition{
+    Buy,
+    Rent
+}
+
 struct UnitInfo{
     // index of the unit type added
-    uint256 unitTypeIndex;
+    uint256 unitTypeId;
     // number of rooms a unit has from single room to 5 bedroom units
     uint256 noOfRooms;
     // it is either self contain or shared hall or washrooms 
@@ -40,6 +46,15 @@ struct UnitInfo{
     // number of units available
     uint256 noOfUnitsAvailable;
 }
+
+struct apartmentInfo{
+    // whether properties are bought or rented 
+    mapping(uint256 _apartmentID => ModeOfAcquisition mode) acquireInfo;
+    // gives us detailed info about the property user owns 
+    mapping(uint256 _apartmentID=>mapping(uint256 _unitTypeId=>uint256 unitsAcquired)) ownershipInfo;
+}
+
+apartmentInfo _apartmentInfo;
 
 // Type of units for rent or sale
 UnitInfo[] public typeOfUnit;
@@ -69,7 +84,7 @@ uint256 totalNoOfUnitTypes;
         require(_noOfRooms != 0,"invalidUnitType");
         // add check to make sure one type cannot be added multiple times
         UnitInfo memory tempUnit = UnitInfo({
-            unitTypeIndex: totalNoOfUnitTypes++,
+            unitTypeId: totalNoOfUnitTypes++,
             noOfRooms: _noOfRooms,
             selfContain: _selfContain,
             bigger: _bigger,
@@ -81,22 +96,22 @@ uint256 totalNoOfUnitTypes;
 
     /**
      * Remove a type of unit that is being put up for rent
-     * @param _unitTypeIndex the index of the unit type to remove
+     * @param _unitTypeId the index of the unit type to remove
      */
-    function removeUnit(uint256 _unitTypeIndex) external onlyLandlord {
+    function removeUnit(uint256 _unitTypeId) external onlyLandlord {
         // we can remove units when there are available units of not FYI landlord is trusted
         // Available rooms can be undergoing renovation hence not making them accessible eventhoguh they are availble 
-        require(typeOfUnit[_unitTypeIndex].noOfRooms != 0,"InvalidUnitType");
-        delete typeOfUnit[_unitTypeIndex];
+        require(typeOfUnit[_unitTypeId].noOfRooms != 0,"InvalidUnitType");
+        delete typeOfUnit[_unitTypeId];
     }
 
     /**
-     * A function to update type of units in system.
-     * @param _unitTypeIndex Type of unit to update
+     * A function to update type of units available in system.
+     * @param _unitTypeId Type of unit to update
      * @param unitsAvailable number of units available 
      */
-    function updateUnits(uint256 _unitTypeIndex, uint256 unitsAvailable) external onlyLandlord{
-        typeOfUnit[_unitTypeIndex].noOfUnitsAvailable = unitsAvailable; 
+    function updateUnits(uint256 _unitTypeId, uint256 unitsAvailable) external onlyLandlord{
+        typeOfUnit[_unitTypeId].noOfUnitsAvailable = unitsAvailable; 
     }
 
     /**
@@ -104,11 +119,11 @@ uint256 totalNoOfUnitTypes;
      * And whether there are some units available
      * @param _numOfRooms number of rooms Tenant is looking for 
      */
-    function checkUnitsAvailable(uint256 _numOfRooms) external view returns (uint256 unitsAvailable){
+    function checkUnitsAvailable(uint256 _numOfRooms) external view returns (uint256 unitsAvailable, uint256 uintID ){
         // user can specify preferable number of rooms in the unit he looking for to know how many are available
         for(uint256 i=0; i<typeOfUnit.length; i++){
             if(typeOfUnit[i].noOfRooms == _numOfRooms){
-                return typeOfUnit[i].noOfUnitsAvailable;
+                return (typeOfUnit[i].noOfUnitsAvailable, typeOfUnit[i].unitTypeId);
             }
         }
 
@@ -117,13 +132,17 @@ uint256 totalNoOfUnitTypes;
     /**
      * Owner adds a new Tenant
      * @param newTenant address of new tenant
-     * @param roomNumber room number of tenant
+     * @param apartmentId room number of tenant
      */
-    function addTenant(address newTenant, uint256 roomNumber) external onlyLandlord{
-        if (tenantDetails[newTenant] != 0){ revert alreadyTenant();}
+    function addTenant(address newTenant, uint256 apartmentId, ModeOfAcquisition _mode, uint256 _unitTypeId, uint256 numOfUnitsAcquired) external onlyLandlord{
+        if (paymentRecords[newTenant] != 0){ revert alreadyTenant();}
         emit NewTenantAdded(newTenant);
         tenantsTotal += 1;
-        tenantDetails[newTenant]=roomNumber;
+        apartmentInfo memory tempInfo = apartmentInfo({
+            acquireInfo: acquireInfo[apartmentId] = _mode,
+            ownershipInfo: ownershipInfo[newTenant][_unitTypeId]=numOfUnitsAcquired
+        });
+        tenantDetails[newTenant]= tempInfo;
         paymentRecords[newTenant] = block.timestamp;
     }
 
