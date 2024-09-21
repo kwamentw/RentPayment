@@ -19,13 +19,23 @@ contract RentPayment{
     error RentNotExpired();
     error insufficientAmount();
 //-----------------------------------------------------------------------
+    // landlord address
     address landlord;
+    // TO BE CHECKED
     uint256 RENT_COST = 0.03e18;
+    // security deposit when renting a unit 
     uint256 SEC_DEPOSIT=0.00003e18;
+    // total number of tenants
     uint256 internal tenantsTotal;
 //-----------------------------------------------------------------------
-    mapping (address tenant => apartmentInfo apartment) tenantDetails;
+    // apartments owned or rented by tenant
+    mapping (address tenant => uint256[] apartmentID) tenantDetails;
+    // payment records
     mapping (address tenant => uint256 timeRentPayed) paymentRecords;
+    // info on mode of acquisition on a specific apartment
+    mapping(uint256 _apartmentID => ModeOfAcquisition mode) acquireInfo;
+    // owner info | might take od units acquired later since apatmentID can track units bought | we might just analyse it from there
+    mapping(uint256 _apartmentID=>mapping(uint256 _unitTypeId=>uint256 unitsAcquired)) ownershipInfo;
 //-----------------------------------------------------------------------
 
 // To tell whether its a rental or bought 
@@ -46,15 +56,6 @@ struct UnitInfo{
     // number of units available
     uint256 noOfUnitsAvailable;
 }
-
-struct apartmentInfo{
-    // whether properties are bought or rented 
-    mapping(uint256 _apartmentID => ModeOfAcquisition mode) acquireInfo;
-    // gives us detailed info about the property user owns 
-    mapping(uint256 _apartmentID=>mapping(uint256 _unitTypeId=>uint256 unitsAcquired)) ownershipInfo;
-}
-
-apartmentInfo _apartmentInfo;
 
 // Type of units for rent or sale
 UnitInfo[] public typeOfUnit;
@@ -80,7 +81,7 @@ uint256 totalNoOfUnitTypes;
      * @param _bigger is it the bigger unit if yes true otherwise, False
      * @param _numAvailable Number of units available for the unit type to be added 
      */
-    function addNewUnit(uint256 _noOfRooms, bool _selfContain, bool _bigger, uint256 _numAvailable) external onlyLandlord returns(bytes memory){
+    function addNewUnit(uint256 _noOfRooms, bool _selfContain, bool _bigger, uint256 _numAvailable) external onlyLandlord returns(UnitInfo memory){
         require(_noOfRooms != 0,"invalidUnitType");
         // add check to make sure one type cannot be added multiple times
         UnitInfo memory tempUnit = UnitInfo({
@@ -92,6 +93,8 @@ uint256 totalNoOfUnitTypes;
         });
 
         typeOfUnit.push(tempUnit);
+
+        return tempUnit;
     }
 
     /**
@@ -132,17 +135,12 @@ uint256 totalNoOfUnitTypes;
     /**
      * Owner adds a new Tenant
      * @param newTenant address of new tenant
-     * @param apartmentId room number of tenant
      */
-    function addTenant(address newTenant, uint256 apartmentId, ModeOfAcquisition _mode, uint256 _unitTypeId, uint256 numOfUnitsAcquired) external onlyLandlord{
+    function addTenant(address newTenant) external onlyLandlord{
         if (paymentRecords[newTenant] != 0){ revert alreadyTenant();}
         emit NewTenantAdded(newTenant);
         tenantsTotal += 1;
-        apartmentInfo memory tempInfo = apartmentInfo({
-            acquireInfo: acquireInfo[apartmentId] = _mode,
-            ownershipInfo: ownershipInfo[newTenant][_unitTypeId]=numOfUnitsAcquired
-        });
-        tenantDetails[newTenant]= tempInfo;
+        //////
         paymentRecords[newTenant] = block.timestamp;
     }
 
@@ -151,7 +149,7 @@ uint256 totalNoOfUnitTypes;
      * @param tenant address of tenant
      */
     function removeTenant(address tenant) external onlyLandlord{
-        if(tenantDetails[tenant] == 0){revert invalidTenant();}
+        if(tenantDetails[tenant].length == 0){revert invalidTenant();}
         emit TenantSacked(tenant);
         tenantsTotal -= 1;
         delete tenantDetails[tenant];
@@ -163,7 +161,7 @@ uint256 totalNoOfUnitTypes;
      * @param tenant address of tenant
      */
     function checkOwing(address tenant) public view returns(address){
-        if(tenantDetails[tenant] == 0){revert invalidTenant();}
+        if(tenantDetails[tenant].length == 0){revert invalidTenant();}
         if (paymentRecords[tenant] + 30 days > block.timestamp){revert RentNotExpired();}
         return tenant;
     }
@@ -185,7 +183,7 @@ uint256 totalNoOfUnitTypes;
      * Amount to be payed cannot be more than rent cost
      */
     function payRent() external payable returns(bool){
-        if(tenantDetails[msg.sender] == 0){revert invalidTenant();}
+        if(tenantDetails[msg.sender].length == 0){revert invalidTenant();}
         if(msg.value != RENT_COST){revert insufficientAmount();}
         checkOwing(msg.sender);
 
