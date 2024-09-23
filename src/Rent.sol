@@ -31,11 +31,11 @@ contract RentPayment{
     // apartments owned or rented by tenant
     mapping (address tenant => uint256[] apartmentID) tenantDetails;
     // payment records
-    mapping (address tenant => uint256 timeRentPayed) paymentRecords;
+    mapping (address tenant => uint256[] timeRentPayed) paymentRecords;
     // info on mode of acquisition on a specific apartment
     mapping(uint256 _apartmentID => ModeOfAcquisition mode) acquireInfo;
     // owner info | might take od units acquired later since apatmentID can track units bought | we might just analyse it from there
-    mapping(uint256 _apartmentID=>mapping(uint256 _unitTypeId=>uint256 unitsAcquired)) ownershipInfo;
+    mapping(uint256 _apartmentID=>uint256 _unitTypeId) ownershipInfo;
 //-----------------------------------------------------------------------
 
 // To tell whether its a rental or bought 
@@ -133,27 +133,46 @@ uint256 totalNoOfUnitTypes;
     }
 
     /**
-     * Owner adds a new Tenant
-     * @param newTenant address of new tenant
+     * 
+     * @param newTenant address of new tenant to be added
+     * @param _typeOfUnit type of apartment Tenant acquired
+     * @param _apartmentIds Id of apartments acquire by tenant / it can be one or more 
+     * @param _paymentTime time payment was made | current payment status
+     * @param boughtOrRented way of acquisition | 0 for buy, 1 for rent
      */
-    function addTenant(address newTenant) external onlyLandlord{
-        if (paymentRecords[newTenant] != 0){ revert alreadyTenant();}
+
+    //add a function to handle single adds and loop over that function for this function to make it add for multiple 
+    function addTenant(address newTenant,uint256[] memory _typeOfUnit, uint256[] memory _apartmentIds, uint256[] memory _paymentTime, uint256[] memory boughtOrRented) external onlyLandlord{
+        if (paymentRecords[newTenant].length != 0){ revert alreadyTenant();}
+        require(_apartmentIds.length == _paymentTime.length, "invalidInput");
+        require(_apartmentIds.length == boughtOrRented.length, "InvalidEnumInput");
         emit NewTenantAdded(newTenant);
         tenantsTotal += 1;
         //////
-        paymentRecords[newTenant] = block.timestamp;
+        tenantDetails[newTenant]=_apartmentIds;
+        uint256 apartmentLength = _apartmentIds.length;
+        for(uint256 i=0; i<apartmentLength; ++i){
+            _paymentTime[i] = block.timestamp;
+            ownershipInfo[_apartmentIds[i]]=_typeOfUnit[i];
+            acquireInfo[_apartmentIds[i]] = boughtOrRented[i]==0 ? ModeOfAcquisition.Buy:ModeOfAcquisition.Rent;
+        }
+        paymentRecords[newTenant] = _paymentTime;
     }
 
+
     /**
-     * Removes tenant
-     * @param tenant address of tenant
+     * Function to call when sacking tenant
+     * @param tenant address of tenant to remove
+     * @param _apartmentId apartment Id to remove
      */
-    function removeTenant(address tenant) external onlyLandlord{
+    function removeTenant(address tenant, uint256 _apartmentId) external onlyLandlord{
         if(tenantDetails[tenant].length == 0){revert invalidTenant();}
         emit TenantSacked(tenant);
         tenantsTotal -= 1;
         delete tenantDetails[tenant];
         delete paymentRecords[tenant];
+        delete acquireInfo[_apartmentId];
+        delete ownershipInfo[_apartmentId];
     }
 
     /**
@@ -162,7 +181,8 @@ uint256 totalNoOfUnitTypes;
      */
     function checkOwing(address tenant) public view returns(address){
         if(tenantDetails[tenant].length == 0){revert invalidTenant();}
-        if (paymentRecords[tenant] + 30 days > block.timestamp){revert RentNotExpired();}
+        //must loop over this if more than one apartment
+        // if (paymentRecords[tenant] + 30 days > block.timestamp){revert RentNotExpired();}
         return tenant;
     }
 
@@ -187,7 +207,8 @@ uint256 totalNoOfUnitTypes;
         if(msg.value != RENT_COST){revert insufficientAmount();}
         checkOwing(msg.sender);
 
-        paymentRecords[msg.sender]=block.timestamp;
+        // loop over this if more than one apartment
+        // paymentRecords[msg.sender]=block.timestamp;
 
         emit rentPayed(msg.sender,block.timestamp);
 
