@@ -12,6 +12,7 @@ contract RentPayment{
     event AddressesShouldPayTheirRent();
     event landlordChanged(address,address);
     event rentPayed(address tenant, uint256 nextPaymentTime);
+    event RentNotDue(address,uint256);
     event RentWithdrawed(address landlord);
 //------------------------------ ERRORS ---------------------------------
     error alreadyTenant();
@@ -179,23 +180,32 @@ uint256 totalNoOfUnitTypes;
      * Checks whether tenant is owing rent or not
      * @param tenant address of tenant
      */
-    function checkOwing(address tenant) public view returns(address){
+    function checkOwing(address tenant) public returns(address _tenant, uint256 apartmentIndex){
+
         if(tenantDetails[tenant].length == 0){revert invalidTenant();}
-        //must loop over this if more than one apartment
-        // if (paymentRecords[tenant] + 30 days > block.timestamp){revert RentNotExpired();}
-        return tenant;
+
+        uint256 recordsLength = paymentRecords[tenant].length;
+        uint256[] memory datePayed = paymentRecords[tenant];
+
+        for(uint256 i=0; i<recordsLength; ++i){
+            if((datePayed[i] + 30 days)<block.timestamp){
+                return(tenant,i);
+            }else{
+                emit RentNotDue(tenant,i);
+                return(address(0),0);
+            }
+        }
     }
 
    /**
     * Check owing for batch of address
     * @param tenants batch of tenants address
     */
-    function checkOwingBatch(address[] memory tenants) external onlyLandlord returns(address[] memory tenantsOwing){
+    function checkOwingBatch(address[] memory tenants) external onlyLandlord returns(address[] memory tenantsOwing, uint256[] memory _apartmentIndex){
         uint256 length = tenants.length;
         for(uint256 i=0; i<length; i++){
-            tenantsOwing[i]=checkOwing(tenants[i]);
+            (tenantsOwing[i],_apartmentIndex[i])=checkOwing(tenants[i]);
         }
-        emit AddressesShouldPayTheirRent();
     }
 
     /**
