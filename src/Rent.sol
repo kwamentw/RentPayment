@@ -19,6 +19,7 @@ contract RentPayment{
     error invalidTenant();
     error InvalidInput();
     error RentNotExpired();
+    error ApartmentIsBought(uint256 id);
     error insufficientAmount();
 //-----------------------------------------------------------------------
     // landlord address
@@ -170,10 +171,8 @@ uint256 totalNoOfUnitTypes;
     function removeTenant(address tenant, uint256 _apartmentId) external onlyLandlord{
         if(tenantDetails[tenant].length == 0){revert invalidTenant();}
         require(ownershipInfo[_apartmentId]!=0,"inavlidinput");
-
         emit TenantSacked(tenant);
         tenantsTotal -= 1;
-        
         delete tenantDetails[tenant];
         delete paymentRecords[tenant];
         delete acquireInfo[_apartmentId];
@@ -203,31 +202,20 @@ uint256 totalNoOfUnitTypes;
      * Checks whether tenant is owing rent or not
      * @param tenant address of tenant
      */
-    function checkOwing(address tenant) public returns(address _tenant, uint256 apartmentIndex){
+    function checkOwing(address tenant) public returns(address _tenant, uint256[] memory apartmentIndex){
 
         if(tenantDetails[tenant].length == 0){revert invalidTenant();}
 
         uint256 recordsLength = paymentRecords[tenant].length;
         uint256[] memory datePayed = paymentRecords[tenant];
+        _tenant= tenant;
 
-        for(uint256 i=0; i<recordsLength; ++i){
+        for(uint256 i=0; i<recordsLength; i++){
             if((datePayed[i] + 30 days)<block.timestamp){
-                return(tenant,i);
+                apartmentIndex[i] = i;
             }else{
                 emit RentNotDue(tenant,i);
-                return(address(0),0);
             }
-        }
-    }
-
-   /**
-    * Check owing for batch of address
-    * @param tenants batch of tenants address
-    */
-    function checkOwingBatch(address[] memory tenants) external onlyLandlord returns(address[] memory tenantsOwing, uint256[] memory _apartmentIndex){
-        uint256 length = tenants.length;
-        for(uint256 i=0; i<length; i++){
-            (tenantsOwing[i],_apartmentIndex[i])=checkOwing(tenants[i]);
         }
     }
 
@@ -237,11 +225,23 @@ uint256 totalNoOfUnitTypes;
      */
     function payRent() external payable returns(bool){
         if(tenantDetails[msg.sender].length == 0){revert invalidTenant();}
-        if(msg.value != RENT_COST){revert insufficientAmount();}
-        checkOwing(msg.sender);
+        
+        uint256[] memory _ownerapartmentIds = tenantDetails[msg.sender];
+        uint256[] memory idNextRentDue;
 
-        // loop over this if more than one apartment
-        // paymentRecords[msg.sender]=block.timestamp;
+        (,_ownerapartmentIds)=checkOwing(msg.sender);
+        uint256 ownerApartmentsLen = _ownerapartmentIds.length;
+
+        require(ownerApartmentsLen !=0,"DoesNotOwe");
+
+        for(uint256 i=0; i<ownerApartmentsLen; i++){
+            if(msg.value < RENT_COST){revert insufficientAmount();}
+            if(acquireInfo[_ownerapartmentIds[i]] == ModeOfAcquisition.Buy){revert ApartmentIsBought(_ownerapartmentIds[i]);}
+            msg.value - RENT_COST;
+            idNextRentDue[i]=block.timestamp;
+        }
+
+        paymentRecords[msg.sender]=idNextRentDue;
 
         emit rentPayed(msg.sender,block.timestamp);
 
