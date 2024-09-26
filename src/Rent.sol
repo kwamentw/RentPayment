@@ -17,6 +17,7 @@ contract RentPayment{
 //------------------------------ ERRORS ---------------------------------
     error alreadyTenant();
     error invalidTenant();
+    error InvalidInput();
     error RentNotExpired();
     error insufficientAmount();
 //-----------------------------------------------------------------------
@@ -168,12 +169,34 @@ uint256 totalNoOfUnitTypes;
      */
     function removeTenant(address tenant, uint256 _apartmentId) external onlyLandlord{
         if(tenantDetails[tenant].length == 0){revert invalidTenant();}
+        require(ownershipInfo[_apartmentId]!=0,"inavlidinput");
+
         emit TenantSacked(tenant);
         tenantsTotal -= 1;
+        
         delete tenantDetails[tenant];
         delete paymentRecords[tenant];
         delete acquireInfo[_apartmentId];
         delete ownershipInfo[_apartmentId];
+    }
+
+    /**
+     * Removes a batch of tenants 
+     * @param tenant batch of tenants to remove
+     * @param _apartmentId batch of apartment ids owned by tenants to remove
+     */
+    function removeBatchTenants(address[] memory tenant, uint256[] memory _apartmentId) external onlyLandlord{
+        for(uint i=0;i<tenant.length;++i){
+            tenantsTotal -= 1;
+            emit TenantSacked(tenant[i]);
+            delete tenantDetails[tenant[i]];
+            delete paymentRecords[tenant[i]];
+        }
+
+        for(uint i=0; i<_apartmentId.length;++i){
+             delete acquireInfo[_apartmentId[i]];
+            delete ownershipInfo[_apartmentId[i]];
+        }
     }
 
     /**
