@@ -26,7 +26,7 @@ contract RentPayment{
     address landlord;
     // TO BE CHECKED
     uint256 RENT_COST = 0.03e18;
-    // security deposit when renting a unit 
+    // security deposit when renting a Apartment 
     uint256 SEC_DEPOSIT=0.00003e18;
     // total number of tenants
     uint256 internal tenantsTotal;
@@ -37,8 +37,8 @@ contract RentPayment{
     mapping (address tenant => uint256[] timeRentPayed) paymentRecords;
     // info on mode of acquisition on a specific apartment
     mapping(uint256 _apartmentID => ModeOfAcquisition mode) acquireInfo;
-    // owner info | might take od units acquired later since apatmentID can track units bought | we might just analyse it from there
-    mapping(uint256 _apartmentID=>uint256 _unitTypeId) ownershipInfo;
+    // owner info | might take od Apartments acquired later since apatmentID can track Apartments bought | we might just analyse it from there
+    mapping(uint256 _apartmentID=>uint256 _ApartmentTypeId) ownershipInfo;
 //-----------------------------------------------------------------------
 
 // To tell whether its a rental or bought 
@@ -47,23 +47,23 @@ enum ModeOfAcquisition{
     Rent
 }
 
-struct UnitInfo{
-    // index of the unit type added
-    uint256 unitTypeId;
-    // number of rooms a unit has from single room to 5 bedroom units
+struct ApartmentInfo{
+    // index of the Apartment type added
+    uint256 ApartmentTypeId;
+    // number of rooms a Apartment has from single room to 5 bedroom Apartments
     uint256 noOfRooms;
     // it is either self contain or shared hall or washrooms 
-    bool selfContain;
-    // they are either bigger apartments or small
-    bool bigger;
-    // number of units available
-    uint256 noOfUnitsAvailable;
+    bool sharedRestroom;
+    // they are either biggerSqft apartments or small
+    bool biggerSqft;
+    // number of Apartments available
+    uint256 noOfApartmentsAvailable;
 }
 
-// Type of units for rent or sale
-UnitInfo[] public typeOfUnit;
-// The total number of the types of units added by the Landlord
-uint256 totalNoOfUnitTypes;
+// Type of Apartments for rent or sale
+ApartmentInfo[]  typeOfApartment;
+// The total number of the types of Apartments added by the Landlord
+uint256 totalNoOfApartmentTypes;
 
     constructor(){
         landlord = msg.sender;
@@ -78,58 +78,58 @@ uint256 totalNoOfUnitTypes;
     }
 
     /**
-     * Add a new type of unit that is a availiable for rent
-     * @param _noOfRooms number of rooms of new unit 
-     * @param _selfContain is it a self contain unit or it is shared
-     * @param _bigger is it the bigger unit if yes true otherwise, False
-     * @param _numAvailable Number of units available for the unit type to be added 
+     * Add a new type of Apartment that is a availiable for rent
+     * @param _noOfRooms number of rooms of new Apartment 
+     * @param _sharedRestroom is it a self contain Apartment or it is shared
+     * @param _biggerSqft does it have a bigger area if yes true otherwise, False
+     * @param _numAvailable Number of Apartments available for the Apartment type to be added 
      */
-    function addNewUnit(uint256 _noOfRooms, bool _selfContain, bool _bigger, uint256 _numAvailable) external onlyLandlord returns(UnitInfo memory){
-        require(_noOfRooms != 0,"invalidUnitType");
+    function addNewApartment(uint256 _noOfRooms, bool _sharedRestroom, bool _biggerSqft, uint256 _numAvailable) external onlyLandlord returns(ApartmentInfo[] memory){
+        require(_noOfRooms != 0,"invalidApartmentType");
         // add check to make sure one type cannot be added multiple times
-        UnitInfo memory tempUnit = UnitInfo({
-            unitTypeId: totalNoOfUnitTypes++,
+        ApartmentInfo memory tempApartment = ApartmentInfo({
+            ApartmentTypeId: totalNoOfApartmentTypes++,
             noOfRooms: _noOfRooms,
-            selfContain: _selfContain,
-            bigger: _bigger,
-            noOfUnitsAvailable: _numAvailable
+            sharedRestroom: _sharedRestroom,
+            biggerSqft: _biggerSqft,
+            noOfApartmentsAvailable: _numAvailable
         });
 
-        typeOfUnit.push(tempUnit);
+        typeOfApartment.push(tempApartment);
 
-        return tempUnit;
+        return typeOfApartment;
     }
 
     /**
-     * Remove a type of unit that is being put up for rent
-     * @param _unitTypeId the index of the unit type to remove
+     * Remove a type of Apartment that is being put up for rent
+     * @param _ApartmentTypeId the index of the Apartment type to remove
      */
-    function removeUnit(uint256 _unitTypeId) external onlyLandlord {
-        // we can remove units when there are available units of not FYI landlord is trusted
+    function removeApartment(uint256 _ApartmentTypeId) external onlyLandlord {
+        // we can remove Apartments when there are available Apartments of not FYI landlord is trusted
         // Available rooms can be undergoing renovation hence not making them accessible eventhoguh they are availble 
-        require(typeOfUnit[_unitTypeId].noOfRooms != 0,"InvalidUnitType");
-        delete typeOfUnit[_unitTypeId];
+        require(typeOfApartment[_ApartmentTypeId].noOfRooms != 0,"InvalidApartmentType");
+        delete typeOfApartment[_ApartmentTypeId];
     }
 
     /**
-     * A function to update type of units available in system.
-     * @param _unitTypeId Type of unit to update
-     * @param unitsAvailable number of units available 
+     * A function to update type of Apartments available in system.
+     * @param _ApartmentTypeId Type of Apartment to update
+     * @param ApartmentsAvailable number of Apartments available 
      */
-    function updateUnits(uint256 _unitTypeId, uint256 unitsAvailable) external onlyLandlord{
-        typeOfUnit[_unitTypeId].noOfUnitsAvailable = unitsAvailable; 
+    function updateApartments(uint256 _ApartmentTypeId, uint256 ApartmentsAvailable) external onlyLandlord{
+        typeOfApartment[_ApartmentTypeId].noOfApartmentsAvailable = ApartmentsAvailable; 
     }
 
     /**
      * Check the number of rooms specification to see if there is a match to preference
-     * And whether there are some units available
+     * And whether there are some Apartments available
      * @param _numOfRooms number of rooms Tenant is looking for 
      */
-    function checkUnitsAvailable(uint256 _numOfRooms) external view returns (uint256 unitsAvailable, uint256 uintID ){
-        // user can specify preferable number of rooms in the unit he looking for to know how many are available
-        for(uint256 i=0; i<typeOfUnit.length; i++){
-            if(typeOfUnit[i].noOfRooms == _numOfRooms){
-                return (typeOfUnit[i].noOfUnitsAvailable, typeOfUnit[i].unitTypeId);
+    function checkApartmentsAvailable(uint256 _numOfRooms) external view returns (uint256 ApartmentsAvailable, uint256 uintID ){
+        // user can specify preferable number of rooms in the Apartment he looking for to know how many are available
+        for(uint256 i=0; i<typeOfApartment.length; i++){
+            if(typeOfApartment[i].noOfRooms == _numOfRooms){
+                return (typeOfApartment[i].noOfApartmentsAvailable, typeOfApartment[i].ApartmentTypeId);
             }
         }
 
@@ -138,14 +138,12 @@ uint256 totalNoOfUnitTypes;
     /**
      * 
      * @param newTenant address of new tenant to be added
-     * @param _typeOfUnit type of apartment Tenant acquired
+     * @param _typeOfApartment type of apartment Tenant acquired
      * @param _apartmentIds Id of apartments acquire by tenant / it can be one or more 
      * @param _paymentTime time payment was made | current payment status
      * @param boughtOrRented way of acquisition | 0 for buy, 1 for rent
      */
-
-    //add a function to handle single adds and loop over that function for this function to make it add for multiple 
-    function addTenant(address newTenant,uint256[] memory _typeOfUnit, uint256[] memory _apartmentIds, uint256[] memory _paymentTime, uint256[] memory boughtOrRented) external onlyLandlord{
+    function addTenant(address newTenant,uint256[] memory _typeOfApartment, uint256[] memory _apartmentIds, uint256[] memory _paymentTime, uint256[] memory boughtOrRented) external onlyLandlord{
         if (paymentRecords[newTenant].length != 0){ revert alreadyTenant();}
         require(_apartmentIds.length == _paymentTime.length, "invalidInput");
         require(_apartmentIds.length == boughtOrRented.length, "InvalidEnumInput");
@@ -156,7 +154,7 @@ uint256 totalNoOfUnitTypes;
         uint256 apartmentLength = _apartmentIds.length;
         for(uint256 i=0; i<apartmentLength; ++i){
             _paymentTime[i] = block.timestamp;
-            ownershipInfo[_apartmentIds[i]]=_typeOfUnit[i];
+            ownershipInfo[_apartmentIds[i]]=_typeOfApartment[i];
             acquireInfo[_apartmentIds[i]] = boughtOrRented[i]==0 ? ModeOfAcquisition.Buy:ModeOfAcquisition.Rent;
         }
         paymentRecords[newTenant] = _paymentTime;
@@ -240,6 +238,7 @@ uint256 totalNoOfUnitTypes;
             msg.value - RENT_COST;
             idNextRentDue[i]=block.timestamp;
         }
+        require(idNextRentDue.length == ownerApartmentsLen, "MismatchBTNOwnerAptmntLen");
 
         paymentRecords[msg.sender]=idNextRentDue;
 
@@ -296,13 +295,11 @@ uint256 totalNoOfUnitTypes;
     function getlandlord() external view returns(address){
         return landlord;
     }
-}
 
-/**
- * Features to add
- * One person can own multiple units(buy, rent, sell, remove)
- * add specification for the type of unit
- * (different types of unit for eg. single room, two bedrooms, studio apartment)
- * add buy option instead of renting
- * Add some discount feature to run promo when selling
- */
+    /**
+     * Returns all the types of apartment in the system 
+     */
+    function getApartmentTypes() public view returns(ApartmentInfo[] memory){
+        return typeOfApartment;
+    }
+}
