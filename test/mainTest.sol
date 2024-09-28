@@ -21,13 +21,34 @@ contract MainTest is Test{
         int price = pricechecker.currentRate();
         console2.log("Current rate is: ",price);
     }
-    function testAddApartment() public {
+
+    function addApartment() public {
         rent.addNewApartment(4,true,false,2);
         rent.addNewApartment(1,false,true,10);
         rent.addNewApartment(2, true, false,3);
+    }
+
+    function testAddApartment() public {
+
+        addApartment();
 
         uint256 arrayLen = rent.getApartmentTypes().length;
         assertEq(arrayLen,3);
+    }
+
+    function testRemoveApartment() public {
+        addApartment();
+        uint256 arrayLen = rent.getApartmentTypes().length;
+        console2.log("Number of rooms added",arrayLen);
+
+        rent.removeApartment(1);
+        assertEq(rent.getApartmentTypes().length,2);
+    }
+
+    function testUpdateApartmentAvailability() public {
+        addApartment();
+        rent.updateApartments(2,52);
+        assertEq(rent.getApartment(2).noOfApartmentsAvailable,52);
     }
 
     // function addtenants() public{

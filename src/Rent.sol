@@ -61,7 +61,7 @@ struct ApartmentInfo{
 }
 
 // Type of Apartments for rent or sale
-ApartmentInfo[]  typeOfApartment;
+ApartmentInfo[]  public typeOfApartment;
 // The total number of the types of Apartments added by the Landlord
 uint256 totalNoOfApartmentTypes;
 
@@ -108,7 +108,8 @@ uint256 totalNoOfApartmentTypes;
         // we can remove Apartments when there are available Apartments of not FYI landlord is trusted
         // Available rooms can be undergoing renovation hence not making them accessible eventhoguh they are availble 
         require(typeOfApartment[_ApartmentTypeId].noOfRooms != 0,"InvalidApartmentType");
-        delete typeOfApartment[_ApartmentTypeId];
+        typeOfApartment[_ApartmentTypeId] = typeOfApartment[typeOfApartment.length-1];
+        typeOfApartment.pop();
     }
 
     /**
@@ -301,5 +302,9 @@ uint256 totalNoOfApartmentTypes;
      */
     function getApartmentTypes() public view returns(ApartmentInfo[] memory){
         return typeOfApartment;
+    }
+
+    function getApartment(uint256 index) external view returns(ApartmentInfo memory){
+        return typeOfApartment[index];
     }
 }
