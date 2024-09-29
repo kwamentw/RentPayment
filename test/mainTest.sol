@@ -51,6 +51,47 @@ contract MainTest is Test{
         assertEq(rent.getApartment(2).noOfApartmentsAvailable,52);
     }
 
+    function testCheckApartmentAvailable() public {
+        addApartment();
+        (uint256 available,uint256 id)=rent.checkApartmentsAvailable(1);
+        assertGt(id,0);
+        assertEq(available,10);
+    }
+
+    function testAddTenant() public {
+        addApartment();
+
+        uint256[] memory typeOfAptmnt = new uint256[](3);
+        uint256[] memory apartmentIds = new uint256[](3);
+        uint256[] memory timeDueRent = new uint256[](3);
+        uint256[] memory botOrRent = new uint256[](3);
+
+        uint256 timeDue = block.timestamp;
+
+        typeOfAptmnt[0]=1;
+        typeOfAptmnt[1]=0;
+        typeOfAptmnt[2]=2;
+
+        apartmentIds[0]=1;
+        apartmentIds[1]=2;
+        apartmentIds[2]=3;
+
+        timeDueRent[0]=timeDue;
+        timeDueRent[1]=timeDue;
+        timeDueRent[2]=timeDue;
+
+
+        botOrRent[0]=1;
+        botOrRent[1]=0;
+        botOrRent[2]=1;
+
+        rent.addTenant(address(45),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
+        rent.addTenant(address(46),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
+        rent.addTenant(address(47),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
+        //TODO: assert the apartments os tenant
+        assertEq(rent.tenantsTotal(),3);
+    }
+
     // function addtenants() public{
     //     rent.addTenant(address(0xabc),11);
     //     // rent.addTenant(address(0xddcde),7);

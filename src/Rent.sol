@@ -29,7 +29,7 @@ contract RentPayment{
     // security deposit when renting a Apartment 
     uint256 SEC_DEPOSIT=0.00003e18;
     // total number of tenants
-    uint256 internal tenantsTotal;
+    uint256 public tenantsTotal;
 //-----------------------------------------------------------------------
     // apartments owned or rented by tenant
     mapping (address tenant => uint256[] apartmentID) tenantDetails;
@@ -153,7 +153,7 @@ uint256 totalNoOfApartmentTypes;
         //////
         tenantDetails[newTenant]=_apartmentIds;
         uint256 apartmentLength = _apartmentIds.length;
-        for(uint256 i=0; i<apartmentLength; ++i){
+        for(uint256 i=0; i<apartmentLength; i++){
             _paymentTime[i] = block.timestamp;
             ownershipInfo[_apartmentIds[i]]=_typeOfApartment[i];
             acquireInfo[_apartmentIds[i]] = boughtOrRented[i]==0 ? ModeOfAcquisition.Buy:ModeOfAcquisition.Rent;
