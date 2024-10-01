@@ -32,7 +32,7 @@ contract RentPayment{
     uint256 public tenantsTotal;
 //-----------------------------------------------------------------------
     // apartments owned or rented by tenant
-    mapping (address tenant => uint256[] apartmentID) tenantDetails;
+    mapping (address tenant => uint256[] apartmentID) public tenantDetails;
     // payment records
     mapping (address tenant => uint256[] timeRentPayed) paymentRecords;
     // info on mode of acquisition on a specific apartment
@@ -167,7 +167,7 @@ uint256 totalNoOfApartmentTypes;
      * @param tenant address of tenant to remove
      * @param _apartmentId apartment Id to remove
      */
-    function removeTenant(address tenant, uint256 _apartmentId) external onlyLandlord{
+    function removeTenant(address tenant, uint256 _apartmentId) external onlyLandlord returns(uint256[] memory){
         if(tenantDetails[tenant].length == 0){revert invalidTenant();}
         require(ownershipInfo[_apartmentId]!=0,"inavlidinput");
         emit TenantSacked(tenant);
@@ -176,24 +176,29 @@ uint256 totalNoOfApartmentTypes;
         delete paymentRecords[tenant];
         delete acquireInfo[_apartmentId];
         delete ownershipInfo[_apartmentId];
+
+        return tenantDetails[tenant];
     }
 
     /**
      * Removes a batch of tenants 
      * @param tenant batch of tenants to remove
-     * @param _apartmentId batch of apartment ids owned by tenants to remove
+     * _apartmentId batch of apartment ids owned by tenants to remove
      */
-    function removeBatchTenants(address[] memory tenant, uint256[] memory _apartmentId) external onlyLandlord{
+    function removeBatchTenants(address[] memory tenant) external onlyLandlord{
+         
         for(uint i=0;i<tenant.length;++i){
             tenantsTotal -= 1;
+            uint256[] memory _apartmentId = tenantDetails[tenant[i]];
+
+                for(uint j=0; j<_apartmentId.length;++j){
+                    delete acquireInfo[_apartmentId[j]];
+                    delete ownershipInfo[_apartmentId[j]];
+                }
+                
             emit TenantSacked(tenant[i]);
             delete tenantDetails[tenant[i]];
             delete paymentRecords[tenant[i]];
-        }
-
-        for(uint i=0; i<_apartmentId.length;++i){
-             delete acquireInfo[_apartmentId[i]];
-            delete ownershipInfo[_apartmentId[i]];
         }
     }
 
@@ -306,5 +311,8 @@ uint256 totalNoOfApartmentTypes;
 
     function getApartment(uint256 index) external view returns(ApartmentInfo memory){
         return typeOfApartment[index];
+    }
+    function getTenantDetails(address _tenant) external view returns(uint256[] memory){
+        return tenantDetails[_tenant];
     }
 }
