@@ -210,15 +210,19 @@ uint256 totalNoOfApartmentTypes;
 
         if(tenantDetails[tenant].length == 0){revert invalidTenant();}
 
-        uint256 recordsLength = paymentRecords[tenant].length;
+        // uint256 recordsLength = paymentRecords[tenant].length;
+        uint256 arrayLen = tenantDetails[tenant].length;
         uint256[] memory datePayed = paymentRecords[tenant];
-        _tenant= tenant;
-
-        for(uint256 i=0; i<recordsLength; i++){
+        apartmentIndex = new uint256[](tenantDetails[tenant].length);
+        
+        for(uint256 i=0; i<arrayLen; i++){
             if((datePayed[i] + 30 days)<block.timestamp){
+                _tenant= tenant;
                 apartmentIndex[i] = i;
             }else{
                 emit RentNotDue(tenant,i);
+                _tenant = address(0);
+                apartmentIndex[i]=type(uint256).max;
             }
         }
     }

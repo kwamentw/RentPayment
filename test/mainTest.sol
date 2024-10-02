@@ -63,7 +63,7 @@ contract MainTest is Test{
 
         uint256[] memory typeOfAptmnt = new uint256[](3);
         uint256[] memory apartmentIds = new uint256[](3);
-        uint256[] memory timeDueRent = new uint256[](3);
+        uint256[] memory timeRentPaid = new uint256[](3);
         uint256[] memory botOrRent = new uint256[](3);
 
         uint256 timeDue = block.timestamp;
@@ -76,18 +76,18 @@ contract MainTest is Test{
         apartmentIds[1]=2;
         apartmentIds[2]=3;
 
-        timeDueRent[0]=timeDue;
-        timeDueRent[1]=timeDue;
-        timeDueRent[2]=timeDue;
+        timeRentPaid[0]=timeDue;
+        timeRentPaid[1]=timeDue;
+        timeRentPaid[2]=timeDue;
 
 
         botOrRent[0]=1;
         botOrRent[1]=0;
         botOrRent[2]=1;
 
-        rent.addTenant(address(45),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
-        rent.addTenant(address(46),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
-        rent.addTenant(address(47),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
+        rent.addTenant(address(45),typeOfAptmnt,apartmentIds,timeRentPaid,botOrRent);
+        rent.addTenant(address(46),typeOfAptmnt,apartmentIds,timeRentPaid,botOrRent);
+        rent.addTenant(address(47),typeOfAptmnt,apartmentIds,timeRentPaid,botOrRent);
         //TODO: assert the apartments os tenant
         assertEq(rent.tenantsTotal(),3);
     }
@@ -99,7 +99,7 @@ contract MainTest is Test{
         // Adding the tenants 
         uint256[] memory typeOfAptmnt = new uint256[](3);
         uint256[] memory apartmentIds = new uint256[](3);
-        uint256[] memory timeDueRent = new uint256[](3);
+        uint256[] memory timeRentPaid = new uint256[](3);
         uint256[] memory botOrRent = new uint256[](3);
 
         uint256 timeDue = block.timestamp;
@@ -112,9 +112,9 @@ contract MainTest is Test{
         apartmentIds[1]=2;
         apartmentIds[2]=3;
 
-        timeDueRent[0]=timeDue;
-        timeDueRent[1]=timeDue;
-        timeDueRent[2]=timeDue;
+        timeRentPaid[0]=timeDue;
+        timeRentPaid[1]=timeDue;
+        timeRentPaid[2]=timeDue;
 
 
         botOrRent[0]=1;
@@ -122,9 +122,9 @@ contract MainTest is Test{
         botOrRent[2]=1;
 
         // tenants added successfully
-        rent.addTenant(address(45),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
-        rent.addTenant(address(46),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
-        rent.addTenant(address(47),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
+        rent.addTenant(address(45),typeOfAptmnt,apartmentIds,timeRentPaid,botOrRent);
+        rent.addTenant(address(46),typeOfAptmnt,apartmentIds,timeRentPaid,botOrRent);
+        rent.addTenant(address(47),typeOfAptmnt,apartmentIds,timeRentPaid,botOrRent);
 
         //removing some tenants
         rent.removeTenant(address(46),1);
@@ -141,7 +141,7 @@ contract MainTest is Test{
         // Adding the tenants 
         uint256[] memory typeOfAptmnt = new uint256[](3);
         uint256[] memory apartmentIds = new uint256[](3);
-        uint256[] memory timeDueRent = new uint256[](3);
+        uint256[] memory timeRentPaid = new uint256[](3);
         uint256[] memory botOrRent = new uint256[](3);
 
         uint256 timeDue = block.timestamp;
@@ -154,9 +154,9 @@ contract MainTest is Test{
         apartmentIds[1]=2;
         apartmentIds[2]=3;
 
-        timeDueRent[0]=timeDue;
-        timeDueRent[1]=timeDue;
-        timeDueRent[2]=timeDue;
+        timeRentPaid[0]=timeDue;
+        timeRentPaid[1]=timeDue;
+        timeRentPaid[2]=timeDue;
 
 
         botOrRent[0]=1;
@@ -164,9 +164,9 @@ contract MainTest is Test{
         botOrRent[2]=1;
 
         // tenants added successfully
-        rent.addTenant(address(45),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
-        rent.addTenant(address(46),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
-        rent.addTenant(address(47),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
+        rent.addTenant(address(45),typeOfAptmnt,apartmentIds,timeRentPaid,botOrRent);
+        rent.addTenant(address(46),typeOfAptmnt,apartmentIds,timeRentPaid,botOrRent);
+        rent.addTenant(address(47),typeOfAptmnt,apartmentIds,timeRentPaid,botOrRent);
 
         // adding batch of tenants to be removed
         address[] memory tnats = new address[](3);
@@ -181,6 +181,24 @@ contract MainTest is Test{
         assertEq(rent.tenantsTotal(),0);
         assertEq(rent.getTenantDetails(address(46)).length,0);
 
+    }
+
+    function testCheckOwing() public{
+        uint256[] memory typeOfAptmnt = new uint256[](1);
+        uint256[] memory apartmentIds = new uint256[](1);
+        uint256[] memory timeRentPaid = new uint256[](1);
+        uint256[] memory botOrRent = new uint256[](1);
+
+        addApartment();
+
+        typeOfAptmnt[0] = 1;
+        apartmentIds[0] =1;
+        timeRentPaid[0]=block.timestamp;
+        botOrRent[0]=0;
+        rent.addTenant(address(999),typeOfAptmnt,apartmentIds,timeRentPaid,botOrRent);
+
+        vm.warp(block.timestamp + 31 days);
+        rent.checkOwing(address(999));
     }
 
     // function testCheckOwing() public {
