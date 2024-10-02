@@ -195,7 +195,7 @@ uint256 totalNoOfApartmentTypes;
                     delete acquireInfo[_apartmentId[j]];
                     delete ownershipInfo[_apartmentId[j]];
                 }
-                
+
             emit TenantSacked(tenant[i]);
             delete tenantDetails[tenant[i]];
             delete paymentRecords[tenant[i]];

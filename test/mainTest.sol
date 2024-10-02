@@ -134,53 +134,54 @@ contract MainTest is Test{
         assertEq(rent.getTenantDetails(address(46)).length,0);
     }
 
-    // function testRemoveBatchTenants() public {
-    //      // we have to add new apartment types for tenant to be able to select between
-    //     addApartment();
+    function testRemoveBatchTenants() public {
+         // we have to add new apartment types for tenant to be able to select between
+        addApartment();
 
-    //     // Adding the tenants 
-    //     uint256[] memory typeOfAptmnt = new uint256[](3);
-    //     uint256[] memory apartmentIds = new uint256[](3);
-    //     uint256[] memory timeDueRent = new uint256[](3);
-    //     uint256[] memory botOrRent = new uint256[](3);
+        // Adding the tenants 
+        uint256[] memory typeOfAptmnt = new uint256[](3);
+        uint256[] memory apartmentIds = new uint256[](3);
+        uint256[] memory timeDueRent = new uint256[](3);
+        uint256[] memory botOrRent = new uint256[](3);
 
-    //     uint256 timeDue = block.timestamp;
+        uint256 timeDue = block.timestamp;
 
-    //     typeOfAptmnt[0]=1;
-    //     typeOfAptmnt[1]=0;
-    //     typeOfAptmnt[2]=2;
+        typeOfAptmnt[0]=1;
+        typeOfAptmnt[1]=0;
+        typeOfAptmnt[2]=2;
 
-    //     apartmentIds[0]=1;
-    //     apartmentIds[1]=2;
-    //     apartmentIds[2]=3;
+        apartmentIds[0]=1;
+        apartmentIds[1]=2;
+        apartmentIds[2]=3;
 
-    //     timeDueRent[0]=timeDue;
-    //     timeDueRent[1]=timeDue;
-    //     timeDueRent[2]=timeDue;
+        timeDueRent[0]=timeDue;
+        timeDueRent[1]=timeDue;
+        timeDueRent[2]=timeDue;
 
 
-    //     botOrRent[0]=1;
-    //     botOrRent[1]=0;
-    //     botOrRent[2]=1;
+        botOrRent[0]=1;
+        botOrRent[1]=0;
+        botOrRent[2]=1;
 
-    //     // tenants added successfully
-    //     rent.addTenant(address(45),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
-    //     rent.addTenant(address(46),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
-    //     rent.addTenant(address(47),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
+        // tenants added successfully
+        rent.addTenant(address(45),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
+        rent.addTenant(address(46),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
+        rent.addTenant(address(47),typeOfAptmnt,apartmentIds,timeDueRent,botOrRent);
 
-    //     // adding batch of tenants to be removed
-    //     address[] memory tnats = new address[](3);
-    //     tnats[0]=address(45);
-    //     tnats[1]=address(46);
-    //     tnats[2]=address(47);
+        // adding batch of tenants to be removed
+        address[] memory tnats = new address[](3);
+        tnats[0]=address(45);
+        tnats[1]=address(46);
+        tnats[2]=address(47);
 
-    //     //removing all tenants at once
-    //     rent.removeBatchTenants(tnats);
+        //removing all tenants at once
+        rent.removeBatchTenants(tnats);
 
-    //     //checking whether we have some tenants still in here
-    //     assertEq(rent.tenantsTotal(),0);
+        //checking whether we have some tenants still in here
+        assertEq(rent.tenantsTotal(),0);
+        assertEq(rent.getTenantDetails(address(46)).length,0);
 
-    // }
+    }
 
     // function testCheckOwing() public {
     //     rent.addTenant(address(0xddcde),7);
