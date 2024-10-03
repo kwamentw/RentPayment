@@ -201,11 +201,9 @@ contract MainTest is Test{
         rent.checkOwing(address(999));
     }
 
-    // function testCheckOwing() public {
-    //     rent.addTenant(address(0xddcde),7);
-    //     vm.warp(block.timestamp + 33 days);
-    //     rent.checkOwing(address(0xddcde));
-    // }
+    function testPayRent() public {
+        
+    }
 
     // function testPayRent() public {
     //     addtenants();

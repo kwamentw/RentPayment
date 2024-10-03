@@ -211,11 +211,11 @@ uint256 totalNoOfApartmentTypes;
         if(tenantDetails[tenant].length == 0){revert invalidTenant();}
 
         // uint256 recordsLength = paymentRecords[tenant].length;
-        uint256 arrayLen = tenantDetails[tenant].length;
+        uint256 aparmentIdLen = tenantDetails[tenant].length;
         uint256[] memory datePayed = paymentRecords[tenant];
         apartmentIndex = new uint256[](tenantDetails[tenant].length);
         
-        for(uint256 i=0; i<arrayLen; i++){
+        for(uint256 i=0; i<aparmentIdLen; i++){
             if((datePayed[i] + 30 days)<block.timestamp){
                 _tenant= tenant;
                 apartmentIndex[i] = i;
