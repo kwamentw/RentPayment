@@ -202,7 +202,25 @@ contract MainTest is Test{
     }
 
     function testPayRent() public {
-        
+        uint256[] memory typeOfAptmnt = new uint256[](1);
+        uint256[] memory apartmentIds = new uint256[](1);
+        uint256[] memory timeRentPaid = new uint256[](1);
+        uint256[] memory botOrRent = new uint256[](1);
+
+        addApartment();
+
+        typeOfAptmnt[0] = 1;
+        apartmentIds[0] =1;
+        timeRentPaid[0]=block.timestamp;
+        botOrRent[0]=1;
+        rent.addTenant(address(999),typeOfAptmnt,apartmentIds,timeRentPaid,botOrRent);
+
+        vm.warp(block.timestamp + 31 days);
+        vm.deal(address(999),2e18);
+        vm.startPrank(address(999));
+        assertTrue(rent.payRent{value:0.03e18}());
+        console2.log(address(rent.getlandlord()).balance);
+        vm.stopPrank();
     }
 
     // function testPayRent() public {
