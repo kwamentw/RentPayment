@@ -235,16 +235,16 @@ uint256 totalNoOfApartmentTypes;
         if(tenantDetails[msg.sender].length == 0){revert invalidTenant();}
         
         uint256[] memory _ownerapartmentIds = tenantDetails[msg.sender];
-        uint256[] memory idNextRentDue;
-
+        
         (,_ownerapartmentIds)=checkOwing(msg.sender);
         uint256 ownerApartmentsLen = _ownerapartmentIds.length;
+        uint256[] memory idNextRentDue = new uint256[](ownerApartmentsLen);
 
         require(ownerApartmentsLen !=0,"DoesNotOwe");
 
         for(uint256 i=0; i<ownerApartmentsLen; i++){
             if(msg.value < RENT_COST){revert insufficientAmount();}
-            if(acquireInfo[_ownerapartmentIds[i]] == ModeOfAcquisition.Buy){revert ApartmentIsBought(_ownerapartmentIds[i]);}
+            if(getAcquisitionStatus(_ownerapartmentIds[i]) == ModeOfAcquisition.Buy){revert ApartmentIsBought(_ownerapartmentIds[i]);}
             msg.value - RENT_COST;
             idNextRentDue[i]=block.timestamp;
         }
@@ -318,5 +318,9 @@ uint256 totalNoOfApartmentTypes;
     }
     function getTenantDetails(address _tenant) external view returns(uint256[] memory){
         return tenantDetails[_tenant];
+    }
+
+    function getAcquisitionStatus(uint256 apartmntId) public view returns(ModeOfAcquisition){
+        return acquireInfo[apartmntId];
     }
 }

@@ -202,36 +202,26 @@ contract MainTest is Test{
     }
 
     function testPayRent() public {
+        addApartment();
         uint256[] memory typeOfAptmnt = new uint256[](1);
         uint256[] memory apartmentIds = new uint256[](1);
         uint256[] memory timeRentPaid = new uint256[](1);
         uint256[] memory botOrRent = new uint256[](1);
 
-        addApartment();
-
         typeOfAptmnt[0] = 1;
-        apartmentIds[0] =1;
+        apartmentIds[0] =0;
         timeRentPaid[0]=block.timestamp;
         botOrRent[0]=1;
         rent.addTenant(address(999),typeOfAptmnt,apartmentIds,timeRentPaid,botOrRent);
 
-        vm.warp(block.timestamp + 31 days);
+        vm.warp(block.timestamp + 35 days);
         vm.deal(address(999),2e18);
         vm.startPrank(address(999));
+        uint256 balbefore=address(rent).balance;
         assertTrue(rent.payRent{value:0.03e18}());
-        console2.log(address(rent.getlandlord()).balance);
+        assertEq(address(rent).balance - balbefore, 0.03e18);
         vm.stopPrank();
     }
-
-    // function testPayRent() public {
-    //     addtenants();
-    //     vm.deal(address(0xabc),1 ether);
-    //     vm.startPrank(address(0xabc));
-    //     vm.warp(block.timestamp + 33 days);
-    //     assertTrue(rent.payRent{value: 0.03e18}());
-    //     console2.log(address(rent.getlandlord()).balance);
-    //     vm.stopPrank();
-    // }
 
     // function testWithdrawRent() public {
     //     addtenants();
@@ -261,6 +251,37 @@ contract MainTest is Test{
 
     function testCheckAmtUsd() public view {
         assertGt(rent.checkRentInUSD(56.778e18),0);
+    }
+
+    function testWithdrawRent() public view{
+        ///// COMING SOON
+    }
+
+    function testChangeLandlord() public {
+        rent.changeLandlord(address(66));
+
+        vm.prank(address(66));
+        assertEq(rent.getlandlord(),address(66));
+    }
+
+    function testBalOfContract() public view{
+        uint256 bal = rent.checkTotalRentReceived();
+        assertGe(bal,0);
+    }
+
+    function testAcquisi() public {
+         addApartment();
+        uint256[] memory typeOfAptmnt = new uint256[](1);
+        uint256[] memory apartmentIds = new uint256[](1);
+        uint256[] memory timeRentPaid = new uint256[](1);
+        uint256[] memory botOrRent = new uint256[](1);
+
+        typeOfAptmnt[0] = 1;
+        apartmentIds[0] =0;
+        timeRentPaid[0]=block.timestamp;
+        botOrRent[0]=3;
+        rent.addTenant(address(999),typeOfAptmnt,apartmentIds,timeRentPaid,botOrRent);
+        rent.getAcquisitionStatus(apartmentIds[0]);
     }
 
 }
