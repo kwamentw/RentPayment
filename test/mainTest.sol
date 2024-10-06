@@ -17,11 +17,6 @@ contract MainTest is Test{
         rent = new RentPayment();
     }
 
-    function testRate() public view{
-        int price = pricechecker.currentRate();
-        console2.log("Current rate is: ",price);
-    }
-
     function addApartment() public {
         rent.addNewApartment(4,true,false,2);
         rent.addNewApartment(1,false,true,10);
@@ -223,38 +218,41 @@ contract MainTest is Test{
         vm.stopPrank();
     }
 
-    // function testWithdrawRent() public {
-    //     addtenants();
-    //     vm.deal(address(333),1 ether);
-    //     vm.prank(address(333));
-    //     vm.warp(block.timestamp + 33 days);
-    //     rent.payRent{value: 0.03e18 }();
+    function testWithdrawRent() public {
+        addApartment();
+        uint256[] memory typeOfAptmnt = new uint256[](1);
+        uint256[] memory apartmentIds = new uint256[](1);
+        uint256[] memory timeRentPaid = new uint256[](1);
+        uint256[] memory botOrRent = new uint256[](1);
 
-    //     vm.deal(address(454),2e18);
-    //     vm.prank(address(454));
-    //     vm.warp(block.timestamp + 33 days);
-    //     rent.payRent{value: 0.03 ether}();
+        typeOfAptmnt[0] = 1;
+        apartmentIds[0] =0;
+        timeRentPaid[0]=block.timestamp;
+        botOrRent[0]=1;
+        rent.addTenant(address(999),typeOfAptmnt,apartmentIds,timeRentPaid,botOrRent);
 
-    //     vm.deal(address(0xddcde),1e18);
-    //     vm.prank(address(0xddcde));
-    //     vm.warp(block.timestamp + 33 days);
-    //     rent.payRent{value: 0.03e18}();
+        vm.warp(block.timestamp + 35 days);
+        vm.deal(address(999),2e18);
+        vm.startPrank(address(999));
+        rent.payRent{value:0.03e18}();
+        uint256 prevBal = address(rent.getlandlord()).balance;
+        uint256 balbefore=address(rent).balance;
+        vm.stopPrank();
 
-    //     uint256 bal = address(rent).balance;
-
-    //     rent.changeLandlord(address(223));
-
-    //     vm.prank(address(223));
-    //     rent.withdrawRent();
-    //     assertEq(address(rent.getlandlord()).balance , bal);
-    // }
+        rent.withdrawRent();
+        uint256 balAfter = address(rent).balance;
+        assertGt(balbefore,balAfter);
+        uint256 currentBal = address(rent.getlandlord()).balance;
+        assertEq(currentBal-prevBal,0.03e18);
+    }
 
     function testCheckAmtUsd() public view {
         assertGt(rent.checkRentInUSD(56.778e18),0);
     }
 
-    function testWithdrawRent() public view{
-        ///// COMING SOON
+    function testRate() public view{
+        int price = pricechecker.currentRate();
+        console2.log("Current rate is: ",price);
     }
 
     function testChangeLandlord() public {

@@ -47,6 +47,8 @@ enum ModeOfAcquisition{
     Rent
 }
 
+//-------------------------------------------------------------------------------------------
+
 struct ApartmentInfo{
     // index of the Apartment type added
     uint256 ApartmentTypeId;
@@ -60,14 +62,21 @@ struct ApartmentInfo{
     uint256 noOfApartmentsAvailable;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
+
 // Type of Apartments for rent or sale
 ApartmentInfo[]  public typeOfApartment;
 // The total number of the types of Apartments added by the Landlord
 uint256 totalNoOfApartmentTypes;
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
     constructor(){
         landlord = msg.sender;
     }
+    
+///////////////////////////////////////////////////////////////////////////////////////////
+
     /**
      * makes sure only landlord can call functions that apply this modifier
      */
@@ -299,7 +308,9 @@ uint256 totalNoOfApartmentTypes;
     function totalTenants() external view returns(uint256){
         return tenantsTotal;
     }
-    /**
+
+    ////////////////////// Getter functions //////////////////////////////////////////////////
+        /**
      * Returns address of landlord
      */
     function getlandlord() external view returns(address){
@@ -313,13 +324,23 @@ uint256 totalNoOfApartmentTypes;
         return typeOfApartment;
     }
 
+    /**
+     * Returns type of apartment at index
+     */
     function getApartment(uint256 index) external view returns(ApartmentInfo memory){
         return typeOfApartment[index];
     }
+
+    /**
+     * Returns details of tenants
+     */
     function getTenantDetails(address _tenant) external view returns(uint256[] memory){
         return tenantDetails[_tenant];
     }
 
+    /**
+     * Returns the how the unit was acquired whether it was rented or paid 
+     */
     function getAcquisitionStatus(uint256 apartmntId) public view returns(ModeOfAcquisition){
         return acquireInfo[apartmntId];
     }
