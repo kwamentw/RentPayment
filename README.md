@@ -1,17 +1,17 @@
-## Foundry
+## Rent Contract
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+**This is a contract that is designed to help Landlords that are crypto oriented manage their properties up for sale and rent.**
 
-Foundry consists of:
+This contract consists of these major components:
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+-   **Rent**: Tenants can rent apartments in ETH and landlords can also take their rent in ETH
+-   **Buy**: Tenants can buy properties in ETHER permanently instead of renting
+-   **Remove**: When there's any misbehaviour or defaulting of payment Landlords can eject tenants.
+-   **withdraw**: Module to help landlord withdraw all rent accumulated in contract.
 
-## Documentation
+## Purpose
 
-https://book.getfoundry.sh/
+This is a contract i designed just to illustrate the power of smart contracts in our daily lives.
 
 ## Usage
 
@@ -27,40 +27,8 @@ $ forge build
 $ forge test
 ```
 
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
 ### Deploy
 
 ```shell
 $ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
 ```

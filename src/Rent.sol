@@ -74,7 +74,7 @@ uint256 totalNoOfApartmentTypes;
     constructor(){
         landlord = msg.sender;
     }
-    
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -344,4 +344,5 @@ uint256 totalNoOfApartmentTypes;
     function getAcquisitionStatus(uint256 apartmntId) public view returns(ModeOfAcquisition){
         return acquireInfo[apartmntId];
     }
+    
 }
