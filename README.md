@@ -11,7 +11,7 @@ This contract consists of these major components:
 
 ## Purpose
 
-This is a contract i designed just to illustrate the power of smart contracts in our daily lives.
+This contract was first designed just to illustrate the power of smart contracts in our daily lives to some of my Elders.
 
 ## Usage
 

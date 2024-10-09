@@ -20,7 +20,7 @@ contract RentPayment{
     error InvalidInput();
     error RentNotExpired();
     error ApartmentIsBought(uint256 id);
-    error insufficientAmount();
+    error invalidAmountPaid();
 //-----------------------------------------------------------------------
     // landlord address
     address landlord;
@@ -62,20 +62,20 @@ struct ApartmentInfo{
     uint256 noOfApartmentsAvailable;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
+//-------------------------------------------------------------------------------------------
 
 // Type of Apartments for rent or sale
 ApartmentInfo[]  public typeOfApartment;
 // The total number of the types of Apartments added by the Landlord
 uint256 totalNoOfApartmentTypes;
 
-///////////////////////////////////////////////////////////////////////////////////////////
+//-------------------------------------------------------------------------------------------
 
     constructor(){
         landlord = msg.sender;
     }
 
-///////////////////////////////////////////////////////////////////////////////////////////
+//-------------------------------------------------------------------------------------------
 
     /**
      * makes sure only landlord can call functions that apply this modifier
@@ -236,9 +236,11 @@ uint256 totalNoOfApartmentTypes;
         }
     }
 
+
     /**
      * Tenants call this to pay rent
      * Amount to be payed cannot be more than rent cost
+     * @return bool whenever function is done executing to show whether function was successful or not
      */
     function payRent() external payable returns(bool){
         if(tenantDetails[msg.sender].length == 0){revert invalidTenant();}
@@ -252,7 +254,7 @@ uint256 totalNoOfApartmentTypes;
         require(ownerApartmentsLen !=0,"DoesNotOwe");
 
         for(uint256 i=0; i<ownerApartmentsLen; i++){
-            if(msg.value < RENT_COST){revert insufficientAmount();}
+            if(msg.value < RENT_COST || msg.value > RENT_COST){revert invalidAmountPaid();}
             if(getAcquisitionStatus(_ownerapartmentIds[i]) == ModeOfAcquisition.Buy){revert ApartmentIsBought(_ownerapartmentIds[i]);}
             msg.value - RENT_COST;
             idNextRentDue[i]=block.timestamp;
@@ -267,7 +269,7 @@ uint256 totalNoOfApartmentTypes;
     }
 
     /**
-     * converts eth to dollars
+     * converts rent in eth to dollars
      * @param amountInETH eth amount to convert
      * Helps tenants know how much they are spending
      */
