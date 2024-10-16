@@ -9,19 +9,24 @@ import {AggregatorV3Interface} from "@chainlink/contracts/shared/interfaces/Aggr
  * @notice A contract to check the current price of ETH in USD on sepolia
  */
 contract CheckPrice{
+    // Chainlink aggregator
     AggregatorV3Interface internal aggregatorV3;
 
+    ////////////////////////////////////////////////////////////////////
     error StalePrice(uint256 timeUpdated,uint blocktime);
+    ////////////////////////////////////////////////////////////////////
 
     constructor(address _aggregatorV3){
         aggregatorV3 = AggregatorV3Interface(_aggregatorV3);
     }
 
     /**
-     * ETH/USD rate 
+     * Checks the current ETH/USD rate from chainlink
+     * And return the price in 8 dec
      */
     function currentRate() external view returns(int256){
         (,int256 price,,uint256 updatedAt,)=aggregatorV3.latestRoundData();
+        //Checks staleness of price
         if(updatedAt < block.timestamp - (60*60)){
             revert StalePrice(updatedAt , block.timestamp);
         } 

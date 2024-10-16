@@ -17,11 +17,14 @@ contract MainTest is Test{
         rent = new RentPayment();
     }
 
+    // To help in adding apartments when testing not a test
     function addApartment() public {
         rent.addNewApartment(4,true,false,2);
         rent.addNewApartment(1,false,true,10);
         rent.addNewApartment(2, true, false,3);
     }
+
+    //////////////////////////////////////////////////////////////////////////////////////////
 
     function testAddApartment() public {
 
