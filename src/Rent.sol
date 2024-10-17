@@ -3,6 +3,11 @@ pragma solidity 0.8.24;
 
 import {CheckPrice} from "./pricefeed.sol";
 
+/**
+ * @title Rent Payer
+ * @author Kwame 4b
+ * @notice A rent paying contract
+ */
 contract RentPayment{
     // price oracle
     CheckPrice usdprice;
